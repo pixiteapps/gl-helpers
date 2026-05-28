@@ -35,8 +35,8 @@ import static android.opengl.GLES30.GL_MAP_READ_BIT;
 import static android.opengl.GLES30.GL_PIXEL_PACK_BUFFER;
 import static android.opengl.GLES30.glMapBufferRange;
 import static android.opengl.GLES30.glReadBuffer;
+import static android.opengl.GLES30.glReadPixels;
 import static android.opengl.GLES30.glUnmapBuffer;
-import static com.ryanharter.android.gl.GLES2Fix.glReadPixelsPBO;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 final class PBOExporter implements Exporter {
@@ -102,7 +102,7 @@ final class PBOExporter implements Exporter {
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, ids[0]);
-    glReadPixelsPBO(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     ByteBuffer buffer = (ByteBuffer) glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, 4 * width * height, GL_MAP_READ_BIT);
     if (buffer == null) {

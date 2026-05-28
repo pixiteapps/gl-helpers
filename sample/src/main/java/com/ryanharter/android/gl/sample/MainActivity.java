@@ -1,5 +1,6 @@
 package com.ryanharter.android.gl.sample;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,10 +9,11 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.pixite.common.sample.R;
 import com.ryanharter.android.gl.BitmapTexture;
 import com.ryanharter.android.gl.GLState;
 import com.ryanharter.android.gl.Program;
@@ -32,7 +34,7 @@ import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
   private static final String TAG = MainActivity.class.getSimpleName();
   GLSurfaceView surface;
@@ -84,31 +86,33 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case R.id.export_default:
-        surface.queueEvent(new Runnable() {
-          @Override public void run() {
-            exportDefault();
-          }
-        });
-        return true;
-      case R.id.export_read_pixels:
-        surface.queueEvent(new Runnable() {
-          @Override public void run() {
-            exportReadPixels();
-          }
-        });
-        return true;
-      case R.id.export_pbo:
-        surface.queueEvent(new Runnable() {
-          @Override public void run() {
-            exportPBO();
-          }
-        });
-        return true;
-      default:
-        return super.onOptionsItemSelected(item);
-    }
+      int itemId = item.getItemId();
+      if (itemId == R.id.export_default) {
+          surface.queueEvent(new Runnable() {
+              @Override
+              public void run() {
+                  exportDefault();
+              }
+          });
+          return true;
+      } else if (itemId == R.id.export_read_pixels) {
+          surface.queueEvent(new Runnable() {
+              @Override
+              public void run() {
+                  exportReadPixels();
+              }
+          });
+          return true;
+      } else if (itemId == R.id.export_pbo) {
+          surface.queueEvent(new Runnable() {
+              @Override
+              public void run() {
+                  exportPBO();
+              }
+          });
+          return true;
+      }
+      return super.onOptionsItemSelected(item);
   }
 
   private void exportDefault() {

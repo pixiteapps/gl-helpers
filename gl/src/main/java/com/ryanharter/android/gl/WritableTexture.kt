@@ -49,6 +49,7 @@ import android.opengl.GLES20.glViewport
 import android.opengl.GLES30.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.jvm.JvmOverloads
 
 private fun format(internalFormat: Int) = when (internalFormat) {
   GL_R8, GL_R8_SNORM, GL_R16F, GL_R32F -> GL_RED

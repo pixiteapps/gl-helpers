@@ -4,11 +4,9 @@ import android.opengl.GLES11Ext.GL_TEXTURE_EXTERNAL_OES
 import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLES30.glBindVertexArray
-import android.os.Build
 import android.util.SparseArray
 import android.util.SparseBooleanArray
 import android.util.SparseIntArray
-import androidx.annotation.RequiresApi
 import java.util.Arrays
 
 private data class GLBugs(
@@ -228,7 +226,6 @@ object GLState {
     return false
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   fun bindVertexArray(array: Int): Boolean {
     if (vertexArray != array) {
       glBindVertexArray(array)
