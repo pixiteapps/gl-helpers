@@ -33,7 +33,7 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 @SuppressLint("DefaultLocale")
 public class Program {
 
-  static final ArrayMap<String, Program> programs = new ArrayMap<>();
+//  static final ArrayMap<String, Program> programs = new ArrayMap<>();
 
   private final String tag;
   private final String name;
@@ -56,9 +56,9 @@ public class Program {
    * @param name The name of the program to get.
    * @return The compiled and linked program, or null.
    */
-  public static Program get(String name) {
-    return programs.get(name);
-  }
+//  public static Program get(String name) {
+//    return programs.get(name);
+//  }
 
   /**
    * Loads a program from the Assets directory.
@@ -120,14 +120,14 @@ public class Program {
    * @return The compiled and linked program.
    */
   public static Program load(Context context, String name, String asset, Map<String, String> defines) {
-    Program program = programs.get(name);
-    if (program == null) {
+//    Program program = programs.get(name);
+//    if (program == null) {
       AssetManager assets = context.getAssets();
       String vs = Programs.readShader(assets, asset + ".vs", defines);
       String fs = Programs.readShader(assets, asset + ".fs", defines);
       return load(name, vs, fs, defines);
-    }
-    return program;
+//    }
+//    return program;
   }
 
   /**
@@ -159,15 +159,10 @@ public class Program {
    * @return The compiled and linked program.
    */
   public static Program load(String name, String vertexSource, String fragmentSource,
-      Map<String, String> defines) {
-    Program program = programs.get(name);
-    if (program == null) {
-      program = new Program(name);
-      program.compile(name, assembleSource(vertexSource, defines),
-          assembleSource(fragmentSource, defines));
-
-      programs.put(name, program);
-    }
+    Map<String, String> defines) {
+    Program program = new Program(name);
+    program.compile(name, assembleSource(vertexSource, defines),
+        assembleSource(fragmentSource, defines));
     return program;
   }
 

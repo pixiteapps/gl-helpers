@@ -1,13 +1,8 @@
 package com.ryanharter.android.gl
 
-import android.opengl.GLES11Ext.GL_TEXTURE_EXTERNAL_OES
 import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLES30.glBindVertexArray
-import android.util.SparseArray
-import android.util.SparseBooleanArray
-import android.util.SparseIntArray
-import java.util.Arrays
 
 private data class GLBugs(
   // Some drivers require the GL_TEXTURE_EXTERNAL_OES target to be bound when
@@ -29,19 +24,6 @@ object GLState {
   private var glVersion = GLVersion.GL_UNKNOWN
   private var glExtensions = ""
   private var maxTextureSize = -1
-  private var blend = false
-  private var program = -1
-  private var textureUnit = -1
-  private var framebuffer = -1
-  private var arrayBuffer = -1
-  private var elementArrayBuffer = -1
-  private var vertexArray = -1
-  private val viewport = IntArray(4)
-  private val textures = SparseArray<SparseIntArray>()
-  private val attributes = SparseBooleanArray()
-  private val resetListeners = mutableSetOf<() -> Unit>()
-
-  private val tempInt = IntArray(16)
 
   private var _bugs: GLBugs? = null
   private val bugs: GLBugs
@@ -53,14 +35,6 @@ object GLState {
       }
       return _bugs!!
     }
-
-  fun addResetListener(l: () -> Unit) {
-    resetListeners.add(l)
-  }
-
-  fun removeResetListener(l: () -> Unit) {
-    resetListeners.remove(l)
-  }
 
   enum class GLVersion {
     GLES_20, GLES_30, GL_UNKNOWN
@@ -89,6 +63,7 @@ object GLState {
 
   fun getMaxTextureSize(): Int {
     if (maxTextureSize < 0) {
+      val tempInt = IntArray(16)
       glGetIntegerv(GL_MAX_TEXTURE_SIZE, tempInt, 0)
       maxTextureSize = tempInt[0]
     }
@@ -96,28 +71,16 @@ object GLState {
   }
 
   fun getViewport(viewport: IntArray) {
-    if (GLState.viewport[0] == 0 && GLState.viewport[1] == 0 && GLState.viewport[2] == 0 && GLState.viewport[3] == 0) {
-      glGetIntegerv(GL_VIEWPORT, GLState.viewport, 0)
-    }
-
-    viewport[0] = GLState.viewport[0]
-    viewport[1] = GLState.viewport[1]
-    viewport[2] = GLState.viewport[2]
-    viewport[3] = GLState.viewport[3]
+    glGetIntegerv(GL_VIEWPORT, viewport, 0)
   }
 
   fun getViewport(): IntArray {
-    if (viewport[0] == 0 && viewport[1] == 0 && viewport[2] == 0 && viewport[3] == 0) {
+    val viewport = IntArray(4)
       glGetIntegerv(GL_VIEWPORT, viewport, 0)
-    }
     return viewport
   }
 
   fun setViewport(x: Int, y: Int, w: Int, h: Int) {
-    viewport[0] = x
-    viewport[1] = y
-    viewport[2] = w
-    viewport[3] = h
     glViewport(x, y, w, h)
   }
 
@@ -126,18 +89,6 @@ object GLState {
     glVersion = GLVersion.GL_UNKNOWN
     _bugs = null
     maxTextureSize = -1
-    blend = false
-    program = -1
-    textureUnit = -1
-    framebuffer = -1
-    arrayBuffer = -1
-    elementArrayBuffer = -1
-    vertexArray = -1
-    textures.clear()
-    attributes.clear()
-    Arrays.fill(viewport, 0)
-    Program.programs.clear()
-    resetListeners.forEach { it() }
   }
 
   /**
@@ -148,90 +99,55 @@ object GLState {
   }
 
   fun useProgram(program: Int) {
-    if (program != GLState.program) {
-      glUseProgram(program)
-      GLState.program = program
-    }
+    glUseProgram(program)
   }
 
   fun setTextureUnit(textureUnit: Int) {
-    if (textureUnit != GLState.textureUnit) {
-      glActiveTexture(GL_TEXTURE0 + textureUnit)
-      GLState.textureUnit = textureUnit
-    }
+    glActiveTexture(GL_TEXTURE0 + textureUnit)
   }
 
   fun bindTexture(unit: Int, target: Int, texture: Int) {
-    val cache: SparseIntArray = textures.get(target) ?: SparseIntArray().also {
-      textures.put(target, it)
-    }
-
-    if (cache.get(unit) != texture ||
-      (target == GL_TEXTURE_EXTERNAL_OES && bugs.externalTextureNeedsRebind)) {
-      setTextureUnit(unit)
-      glBindTexture(target, texture)
-      cache.put(unit, texture)
-    }
+    setTextureUnit(unit)
+    glBindTexture(target, texture)
   }
 
   fun bindFramebuffer(framebuffer: Int) {
-    if (GLState.framebuffer != framebuffer) {
-      glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
-      GLState.framebuffer = framebuffer
-    }
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
   }
 
   fun setBlend(blend: Boolean, translucent: Boolean) {
-    if (blend != GLState.blend) {
-      if (blend) {
-        glEnable(GL_BLEND)
-        if (translucent) {
-          glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-        } else {
-          glBlendFunc(GL_ONE, GL_ONE)
-        }
+    if (blend) {
+      glEnable(GL_BLEND)
+      if (translucent) {
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
       } else {
-        glDisable(GL_BLEND)
+        glBlendFunc(GL_ONE, GL_ONE)
       }
-      GLState.blend = blend
+    } else {
+      glDisable(GL_BLEND)
     }
   }
 
   fun setAttributeEnabled(index: Int, enabled: Boolean) {
-    if (attributes.get(index) != enabled) {
-      if (enabled) {
-        glEnableVertexAttribArray(index)
-      } else {
-        glDisableVertexAttribArray(index)
-      }
-      attributes.put(index, enabled)
+    if (enabled) {
+      glEnableVertexAttribArray(index)
+    } else {
+      glDisableVertexAttribArray(index)
     }
   }
 
   fun bindArrayBuffer(buffer: Int): Boolean {
-    if (arrayBuffer != buffer) {
-      glBindBuffer(GL_ARRAY_BUFFER, buffer)
-      arrayBuffer = buffer
-      return true
-    }
-    return false
+    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+    return true
   }
 
   fun bindElementArrayBuffer(buffer: Int): Boolean {
-    if (elementArrayBuffer != buffer) {
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
-      elementArrayBuffer = buffer
-      return true
-    }
-    return false
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
+    return true
   }
 
   fun bindVertexArray(array: Int): Boolean {
-    if (vertexArray != array) {
-      glBindVertexArray(array)
-      vertexArray = array
-      return true
-    }
-    return false
+    glBindVertexArray(array)
+    return true
   }
 }
